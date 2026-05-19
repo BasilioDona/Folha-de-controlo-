@@ -1,0 +1,393 @@
+/* ==========================================================================
+   1. VARIÁVEIS GLOBAIS E CONFIGURAÇÃO BASE
+   ========================================================================== */
+:root { 
+    --blue: #0056b3; 
+    --green: #25D366; 
+    --bg-light: #f0f2f5; 
+    --special: #e67e22; 
+    --border-color: #ced4da;
+}
+
+* { 
+    box-sizing: border-box; 
+    margin: 0;
+    padding: 0;
+}
+
+body { 
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+    background: var(--bg-light); 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    padding: 15px; 
+    color: #333; 
+}
+
+/* ==========================================================================
+   2. INTERFACE DO EDITOR (PAINEL DE ENTRADA DE DADOS)
+   ========================================================================== */
+.editor-container { 
+    width: 100%; 
+    max-width: 1120px; 
+    background: #ffffff !important; 
+    padding: 25px; 
+    border-radius: 12px; 
+    margin-bottom: 20px; 
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08); 
+    color: #333 !important;
+}
+
+label { 
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #495057;
+}
+
+input, textarea { 
+    width: 100%; 
+    padding: 12px 15px; 
+    background: #ffffff !important; 
+    color: #212529 !important; 
+    border: 1px solid var(--border-color) !important; 
+    border-radius: 8px !important;
+    font-size: 16px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    margin-bottom: 5px;
+}
+
+input:focus, textarea:focus {
+    border-color: var(--blue) !important;
+    box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.15);
+    outline: none;
+}
+
+.grid-inputs { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); 
+    gap: 15px; 
+    margin-bottom: 15px; 
+}
+
+textarea { 
+    resize: vertical; 
+    min-height: 80px; 
+}
+
+/* BOTÕES GERAIS DO EDITOR */
+.botoes-folha {
+    display: flex;
+    flex-wrap: wrap;     
+    gap: 12px;           
+    margin-top: 20px;
+    width: 100%;
+}
+
+.botoes-folha button {
+    flex: 1;             
+    min-width: 130px;    
+    padding: 14px;
+    border-radius: 10px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;            
+    font-size: 14px;
+}
+
+.btn-guardar { background-color: #28a745 !important; } 
+.btn-apagar { background-color: #dc3545 !important; }  
+.btn-sair { background-color: #6c757d !important; }
+
+.btn-logout-topo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    color: #dc3545; 
+    border: 1px solid #dc3545;
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.btn-logout-topo:hover {
+    background: #dc3545;
+    color: white;
+}
+
+/* ==========================================================================
+   3. HISTÓRICO DE FOLHAS (MUDANÇA BLINDADA CONTRA FALHAS)
+   ========================================================================== */
+#lista-folhas-historico {
+    display: flex !important;
+    overflow-x: auto !important;
+    gap: 14px !important;
+    padding: 20px 10px !important;
+    scrollbar-width: thin;
+    align-items: center !important;
+}
+
+#lista-folhas-historico::-webkit-scrollbar { height: 6px; }
+#lista-folhas-historico::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+#lista-folhas-historico::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+
+/* Estilo Base dos botões do histórico */
+.btn-folha-historico {
+    flex: 0 0 auto !important;
+    padding: 12px 20px !important;
+    background: #ffffff !important;
+    color: #495057 !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 12px !important;
+    cursor: pointer;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease-in-out !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    min-width: 135px !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important;
+    margin: 10px 4px !important; 
+    position: relative !important;
+}
+
+.btn-folha-historico:hover {
+    background: #f8f9fa !important;
+    border-color: #adb5bd !important;
+}
+
+/* REGRA SUPREMA: Ativa o efeito se tiver a classe 'ativa', 'active' ou quando for focado (:focus) */
+.btn-folha-historico.ativa, 
+.btn-folha-historico[class*="ativa"],
+.btn-folha-historico[class*="active"],
+.btn-folha-historico:focus {
+    background: linear-gradient(135deg, #0056b3, #003d80) !important;
+    color: #ffffff !important;
+    border: 2px solid #00d4ff !important;
+    transform: translateY(-4px) scale(1.04) !important;
+    box-shadow: 0 8px 16px rgba(0, 86, 179, 0.4) !important;
+    z-index: 5 !important;
+}
+
+/* Garante os textos brancos no elemento destacado */
+.btn-folha-historico.ativa strong, .btn-folha-historico.ativa small,
+.btn-folha-historico:focus strong, .btn-folha-historico:focus small,
+.btn-folha-historico[class*="ativa"] strong, .btn-folha-historico[class*="ativa"] small,
+.btn-folha-historico[class*="active"] strong, .btn-folha-historico[class*="active"] small {
+    color: #ffffff !important;
+}
+
+.btn-folha-historico:active {
+    transform: scale(0.96) !important;
+}
+
+
+/* ==========================================================================
+   4. ÁREA DE PRÉ-VISUALIZAÇÃO (PREVIEW WRAPPER & CAPTURE AREA)
+   ========================================================================== */
+.preview-wrapper { 
+    width: 100% !important; 
+    max-width: 100% !important;
+    overflow-x: hidden !important; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center !important; 
+    padding: 10px 0 !important; 
+    background: var(--bg-light); 
+}
+
+#capture-area { 
+    width: 100% !important;
+    max-width: 100% !important;
+    display: flex; 
+    flex-direction: column; 
+    align-items: center !important;
+    gap: 0px !important; 
+}
+
+
+/* ==========================================================================
+   5. FOLHAS DE IMPRESSÃO A4 (TABELA - PAISAGEM) & RIGIDEZ DAS COLUNAS
+   ========================================================================== */
+.folha-a4 { 
+    width: 297mm; 
+    height: 210mm; 
+    background: white; 
+    padding: 12mm; 
+    position: relative; 
+    color: #000; 
+    font-family: Arial, sans-serif; 
+    flex-shrink: 0; 
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15); 
+    display: block !important;
+}
+
+.tabela-f-af { 
+    width: 100%; 
+    border-collapse: collapse; 
+    margin-top: 10px; 
+    table-layout: fixed; 
+}
+
+.tabela-f-af th, .tabela-f-af td { 
+    border-bottom: 1px solid #ccc; 
+    padding: 6px 3px; 
+    font-size: 11px; 
+    text-align: center; 
+    font-weight: bold; 
+    word-wrap: break-word; 
+    vertical-align: top; 
+}
+
+.tabela-f-af td div {
+    min-height: 1.4em;   
+    line-height: 1.4em;
+    margin: 0;
+    padding: 0;
+}
+
+.tabela-f-af th { 
+    background: #f8f9fa; 
+    border-bottom: 2px solid #333; 
+    color: #333; 
+}
+
+.txt-left { 
+    text-align: left !important; 
+    padding-left: 10px !important; 
+    white-space: pre-wrap; 
+}
+
+.footer-documento { 
+    position: absolute; 
+    bottom: 8mm; 
+    left: 12mm; 
+    right: 12mm; 
+    font-size: 10px; 
+    border-top: 0.5px solid #eee; 
+    padding-top: 5px; 
+    color: #777;
+}
+
+/* --- DISTRIBUIÇÃO DAS LARGURAS DA TABELA --- */
+.tabela-f-af th:nth-child(1), .tabela-f-af td:nth-child(1) { width: 9%; }   
+.tabela-f-af th:nth-child(2), .tabela-f-af td:nth-child(2) { width: 14%; }  
+.tabela-f-af th:nth-child(3), .tabela-f-af td:nth-child(3) { width: 7%; }   
+.tabela-f-af th:nth-child(4), .tabela-f-af td:nth-child(4) { width: 31%; }  
+.tabela-f-af th:nth-child(5), .tabela-f-af td:nth-child(5) { width: 12%; }  
+.tabela-f-af th:nth-child(6), .tabela-f-af td:nth-child(6) { width: 9%; }   
+.tabela-f-af th:nth-child(7), .tabela-f-af td:nth-child(7) { width: 6%; }   
+.tabela-f-af th:nth-child(8), .tabela-f-af td:nth-child(8) { width: 6%; }   
+.tabela-f-af th:nth-child(9), .tabela-f-af td:nth-child(9) { width: 6%; }   
+
+.tabela-f-af td:nth-child(7),
+.tabela-f-af td:nth-child(8),
+.tabela-f-af td:nth-child(9) {
+    text-align: right !important;
+    padding-right: 6px !important;
+    font-variant-numeric: tabular-nums; 
+}
+
+.tabela-f-af th:nth-child(7),
+.tabela-f-af th:nth-child(8),
+.tabela-f-af th:nth-child(9) {
+    text-align: center !important;
+}
+
+.row-saldo td {
+    font-weight: bold !important;
+    background: #f8f9fa !important;
+    border-top: 1.5px solid #333 !important;
+    border-bottom: 2px double #333 !important;
+}
+
+.row-saldo td[colspan] {
+    text-align: right !important;
+    padding-right: 20px !important;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+}
+
+.row-saldo td:last-child {
+    text-align: right !important;
+    padding-right: 6px !important;
+    color: #000 !important;
+}
+
+
+/* ==========================================================================
+   6. COMPORTAMENTO DA FOLHA DE FOTO (ANEXOS - RETRATO)
+   ========================================================================== */
+.folha-foto { 
+    width: 100% !important; 
+    max-width: 100% !important; 
+    height: auto !important; 
+    background: white !important; 
+    padding: 15px !important; 
+    display: flex !important; 
+    flex-direction: column !important; 
+    align-items: center !important; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important; 
+    margin: 15px 0 0 0 !important; 
+    box-sizing: border-box !important;
+    position: relative !important;
+    z-index: 10; 
+}
+
+.folha-foto img { 
+    width: 100% !important;
+    max-width: 450px !important; 
+    height: auto !important; 
+    object-fit: contain !important; 
+    border: 1px solid #eee !important; 
+    margin: 10px auto 0 auto !important; 
+    display: block !important;
+}
+
+.anexo-item { 
+    background: #f8f9fa; 
+    padding: 12px; 
+    border-radius: 8px; 
+    margin-top: 8px; 
+    display: flex; 
+    justify-content: space-between; 
+    border: 1px solid #e9ecef;
+}
+
+
+/* ==========================================================================
+   7. BOTÃO FLUTUANTE (GERAR PDF)
+   ========================================================================== */
+.btn-acao { 
+    position: fixed; 
+    bottom: 30px; 
+    right: 30px; 
+    background: var(--green); 
+    color: white; 
+    border: none; 
+    padding: 18px 35px; 
+    border-radius: 50px; 
+    font-weight: bold; 
+    cursor: pointer; 
+    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4); 
+    z-index: 1000; 
+    font-size: 16px;
+    transition: transform 0.2s;
+}
+
+.btn-acao:active { 
+    transform: scale(0.95); 
+}
